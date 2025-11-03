@@ -36,9 +36,6 @@ bool is_whitespace(char c) {
     }
 }
 
-// TODO: I was working on having offset for the saved_for_later buffer and using
-// it for reading instead of directly from the stream.
-
 size_t trim_stream_left_trim(TrimStream* this, char* buffer, size_t size) {
     // At this point, we have just start started reading from the stream. No
     // saved_for_later buffer yet, that's for sure.
