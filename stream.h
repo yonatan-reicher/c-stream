@@ -8,6 +8,7 @@
 #include "then-stream.h"
 #include "char-stream.h"
 #include "trim-stream.h"
+#include "cmd-stream.h"
 
 typedef enum StreamKind {
     SK_FREED = 0,
@@ -16,6 +17,7 @@ typedef enum StreamKind {
     SK_THEN,
     SK_CHAR,
     SK_TRIM,
+    SK_CMD,
 } StreamKind;
 
 /*
@@ -31,6 +33,7 @@ typedef struct Stream {
         ThenStream then;
         CharStream ch;
         TrimStream trim;
+        CmdStream cmd;
     } inner;
 } Stream;
 
@@ -62,3 +65,9 @@ Stream stream_char(char c);
 Stream stream_chars(char* c);
 
 Stream stream_trim(Stream other);
+
+void stream_cmd(
+    const char* cmd, const char* const* args,
+    Stream stdin_stream,
+    Stream* stdout_stream, Stream* stderr_stream
+);

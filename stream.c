@@ -14,6 +14,7 @@ void stream_free(Stream* this) {
         case SK_THEN: then_stream_free(&this->inner.then); break;
         case SK_CHAR: char_stream_free(&this->inner.ch); break;
         case SK_TRIM: trim_stream_free(&this->inner.trim); break;
+        case SK_CMD: cmd_stream_free(&this->inner.cmd); break;
     }
     memset(this, 0, sizeof(Stream));
 }
@@ -26,6 +27,7 @@ size_t stream_read(Stream* this, char* buffer, size_t size) {
         case SK_THEN: return then_stream_read(&this->inner.then, buffer, size);
         case SK_CHAR: return char_stream_read(&this->inner.ch, buffer, size);
         case SK_TRIM: return trim_stream_read(&this->inner.trim, buffer, size);
+        case SK_CMD: return cmd_stream_read(&this->inner.cmd, buffer, size);
     }
     return 0;
 }
@@ -152,6 +154,7 @@ bool stream_size(Stream* this, size_t* size) {
         case SK_THEN: return then_stream_size(&this->inner.then, size);
         case SK_CHAR: return false;
         case SK_TRIM: return false;
+        case SK_CMD: return false;
     }
     return false;
 }
@@ -161,4 +164,29 @@ Stream stream_trim(Stream other) {
     this.kind = SK_TRIM;
     this.inner.trim = trim_stream_new(other);
     return this;
+}
+
+void stream_cmd(
+    const char* cmd, const char* const* args,
+    Stream stdin_stream,
+    Stream* stdout_stream, Stream* stderr_stream
+) {
+    size_t n_args = 0;
+    while (args[n_args] != NULL) n_args++;
+    size_t* sizes = alloca(n_args * sizeof(size_t));
+    for (size_t i = 0; i < n_args; i++) {
+        sizes[i] = strlen(args[i]);
+    }
+    cmd_stream_new(
+        cmd,
+        strlen(cmd),
+        args,
+        sizes,
+        n_args,
+        stdin_stream,
+        &stdout_stream->inner.cmd,
+        &stderr_stream->inner.cmd
+    );
+    stdout_stream->kind = SK_CMD;
+    stderr_stream->kind = SK_CMD;
 }
