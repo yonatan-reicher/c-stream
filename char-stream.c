@@ -13,7 +13,7 @@ CharStream char_stream_chars(char* cs) {
         exit(1);
     }
     CharStream this;
-    memcpy(this.chars, cs, CHAR_STREAM_MAX_CHARS);
+    strncpy(this.chars, cs, CHAR_STREAM_MAX_CHARS);
     return this;
 }
 
