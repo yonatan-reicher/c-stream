@@ -32,15 +32,10 @@ size_t then_stream_read(ThenStream* this, char* buffer, size_t size) {
     // If it failed, and there is another stream, advance and repeat.
     // Else, it failed and there is no other stream. We are done!
     while (true) {
+        if (this->i >= this->n) return 0;
         size_t n_read = stream_read(&this->children[this->i], buffer, size);
         if (n_read > 0) return n_read;
-        if (this->i < this->n) {
-            this->i++;
-            continue;
-        }
-        else {
-            return 0;
-        }
+        this->i++;
     }
 }
 

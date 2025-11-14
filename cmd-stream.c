@@ -43,6 +43,10 @@ void open_feeder_child(Stream stdin_stream, pid_t* child_pid, int* out_fd) {
     } else {
         // Parent
         close(write_fd);
+        // TODO: This is probably wrong. We are basically using two copies of
+        // the input stream, this can't be good. What if it's reading from a
+        // pipe or a socket?
+        stream_free(&stdin_stream);
         *child_pid = pid;
         *out_fd = read_fd;
         return;

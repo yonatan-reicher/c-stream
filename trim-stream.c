@@ -48,6 +48,7 @@ again:
     // Left trim.
     size_t i = 0;
     while (i < n_read && is_whitespace(buffer[i])) i++;
+    if (i == 0) return n_read;
     if (i == n_read) goto again;
     // We have reached a non-whitespace character. Shift the buffer back.
     for (size_t j = 0; j < n_read - i; j++) buffer[j] = buffer[j + i];
@@ -124,6 +125,7 @@ size_t trim_stream_read(TrimStream* this, char* buffer, size_t size) {
         this->saved_for_later ?
             trim_stream_read_saved(this, buffer, size) :
         stream_read(this->other, buffer, size);
+    if (n_read == 0) return n_read;
     if (is_whitespace(buffer[n_read - 1])) {
         if (we_have_non_whitespace_saved(this)) {
             return n_read;
