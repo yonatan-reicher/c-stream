@@ -43,9 +43,9 @@ void stream_free(Stream* s);
 
 size_t stream_read(Stream* s, char* buffer, size_t size);
 
-void stream_read_all_to_file(Stream* s, FILE* out);
+void stream_read_all_to_file(Stream s, FILE* out);
 
-void stream_read_all_to_str(Stream* s, char** str, size_t* size);
+void stream_read_all_to_str(Stream s, char** str, size_t* size);
 
 bool stream_size(Stream* s, size_t* size);
 
@@ -58,6 +58,14 @@ Stream stream_str(const char* text);
 Stream stream_then(Stream left, Stream right);
 
 Stream stream_then_all(Stream* streams, size_t n);
+
+Stream stream_then_all_va_list(...);
+
+#define STREAM_THEN_ALL(...) \
+    stream_then_all( \
+        (Stream[]) { __VA_ARGS__ }, \
+        sizeof( (Stream[]) { __VA_ARGS__ } ) / sizeof(Stream) \
+    )
 
 Stream stream_char(char c);
 

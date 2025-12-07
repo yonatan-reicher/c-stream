@@ -32,47 +32,51 @@ size_t stream_read(Stream* this, char* buffer, size_t size) {
     return 0;
 }
 
-void stream_read_all_to_file(Stream* s, FILE* out) {
+void stream_read_all_to_file(Stream s, FILE* out) {
     // Special case for string streams!
-    if (s->kind == SK_STR) {
-        fwrite(s->inner.str.text, 1, s->inner.str.text_size, out);
-        return;
+    if (s.kind == SK_STR) {
+        fwrite(s.inner.str.text, 1, s.inner.str.text_size, out);
+        goto end;
     }
 #define BUF_SIZE 1024
     char buffer[BUF_SIZE];
     while (true) {
-        size_t n_read = stream_read(s, buffer, BUF_SIZE);
+        size_t n_read = stream_read(&s, buffer, BUF_SIZE);
         fwrite(buffer, 1, n_read, out);
         if (n_read == 0) {
-            return;
+            goto end;
         }
     }
 #undef BUF_SIZE
+end:
+    stream_free(&s);
 }
 
-void stream_read_all_to_str(Stream* this, char** str, size_t* size) {
+void stream_read_all_to_str(Stream this, char** str, size_t* size) {
     // Special case for string streams!
-    if (this->kind == SK_STR) {
-        *str = strdup(this->inner.str.text);
-        *size = this->inner.str.text_size;
+    if (this.kind == SK_STR) {
+        *str = this.inner.str.text;
+        *size = this.inner.str.text_size;
+        // Return without calling `stream_free` because the only owned resource
+        // is `inner.str.text`, which we return and do not want to free!
         return;
     }
     // Special case for sized streams!
     size_t my_size = 0;
-    if (stream_size(this, &my_size)) {
+    if (stream_size(&this, &my_size)) {
         *str = (char*)malloc(my_size);
         *size = my_size;
         // Now move the memory
         size_t n_read_total = 0;
         while (n_read_total < my_size) {
             size_t n_read = stream_read(
-                this,
+                &this,
                 *str + n_read_total,
                 my_size - n_read_total
             );
             n_read_total += n_read;
         }
-        return;
+        goto end;
     }
 #define CHUNK_SIZE 1024
     char* buffer = malloc(CHUNK_SIZE);
@@ -80,7 +84,7 @@ void stream_read_all_to_str(Stream* this, char** str, size_t* size) {
     size_t n_read_total = 0;
     while (true) {
         size_t n_read = stream_read(
-            this,
+            &this,
             buffer + n_read_total,
             buffer_size - n_read_total
         );
@@ -96,6 +100,8 @@ void stream_read_all_to_str(Stream* this, char** str, size_t* size) {
         }
     }
 #undef CHUNK_SIZE
+end:
+    stream_free(&this);
 }
 
 Stream stream_file(const char* file_path) {
